@@ -2,7 +2,7 @@ import Card from '../../shared/components/UIElements/Card'
 import PlaceItem from './PlaceItem'
 import './PlaceList.css'
 const PlaceList = props => {
-    if (props.length === 0) {
+    if (props.items.length === 0) {
         return <div className='place-list center'>
             <Card>
                 <h2>No Places found. Maybe Create One?</h2>
