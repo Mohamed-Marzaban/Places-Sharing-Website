@@ -1,6 +1,6 @@
 const express = require('express');
 const HttpError = require('./models/http-error')
-
+const mongoose = require('mongoose')
 const placesRoutes = require('./routes/places-routes')
 const usersRoutes = require('./routes/users-routes')
 const app = express();
@@ -19,5 +19,12 @@ app.use((error, req, res, next) => {
     }
     res.status(error.code || 500).json({ message: error.message || 'An unknown error occured!' });
 })
-app.listen(5000);
+
+mongoose.connect('mongodb+srv://marzban:iyqmiWumzSNIzhWj@nodetuts.pd4zq.mongodb.net/places').then(() => {
+    console.log('Connected to database ✅')
+    app.listen(5000, () => {
+        console.log(`Server is running on port 5000 🚀`)
+    });
+
+}).catch(error => console.log(error))
 
