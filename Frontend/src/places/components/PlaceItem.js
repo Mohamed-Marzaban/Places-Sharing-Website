@@ -1,15 +1,30 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import Card from '../../shared/components/UIElements/Card'
 import Button from '../../shared/components/FormElements/Button'
 import './PlaceItem.css'
 import Modal from '../../shared/components/UIElements/Modal'
 import Map from '../../shared/components/UIElements/Map'
+import AuthContext from '../../shared/context/auth-context'
 const PlaceItem = props => {
 
+    const auth = useContext(AuthContext)
     const [showMap, setShowMap] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
 
     const openMapHandler = () => {
         setShowMap(true)
+    }
+    const showDeleteWarningHandler = () => {
+
+        setShowConfirmModal(true)
+    }
+    const cancelDeleteWarningHandler = () => {
+
+        setShowConfirmModal(false)
+    }
+    const confirmDeleteWarningHandler = () => {
+
+        setShowConfirmModal(false)
     }
     const closeMapHandler = () => {
         setShowMap(false)
@@ -20,6 +35,14 @@ const PlaceItem = props => {
                 <div className='map-container'>
                     <Map center={props.coordinates} zoom={16} />
                 </div>
+            </Modal>
+            <Modal show={showConfirmModal} header="Are you sure?" footerClass="place-item__modal-actions" footer={
+                <>
+                    <Button onClick={cancelDeleteWarningHandler} inverse >CANCEL</Button>
+                    <Button onClick={confirmDeleteWarningHandler} danger>DELETE</Button>
+                </>
+            }>
+                <p>Do you want to proceed and delete this place please note that this action can not be undone after</p>
             </Modal>
             <li className='place-item'>
                 <Card className="place-item__content">
@@ -33,8 +56,8 @@ const PlaceItem = props => {
                     </div>
                     <div className='place-item__actions'>
                         <Button inverse onClick={openMapHandler}>VIEW ON MAP</Button>
-                        <Button to={`/places/${props.id}`}>EDIT</Button>
-                        <Button danger>DELETE</Button>
+                        {auth.isLoggedIn && <Button to={`/places/${props.id}`}>EDIT</Button>}
+                        {auth.isLoggedIn && <Button danger onClick={showDeleteWarningHandler}>DELETE</Button>}
                     </div>
                 </Card>
             </li>
