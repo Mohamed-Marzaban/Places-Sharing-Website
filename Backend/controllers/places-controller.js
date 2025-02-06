@@ -38,7 +38,7 @@ const getPlacesByUserid = async (req, res, next) => {
     if (!place || place.length === 0)
         return next(new HttpError('Could not find a place for the provided user id.', 404))
 
-    res.json({ place })
+    res.json({ place: place })
 }
 
 
@@ -47,7 +47,7 @@ const createPlace = async (req, res, next) => {
     if (!errors.isEmpty()) {
         return next(new HttpError('Invalid inputs passed , please check your data.', 422))
     }
-    const { title, description, address } = req.body;
+    const { title, description, address, creator } = req.body;
     let coordinates;
     try {
         coordinates = await getCoordsForAddress(address)
@@ -56,7 +56,6 @@ const createPlace = async (req, res, next) => {
     catch (error) {
         return next(error)
     }
-    const creator = '67a331c89f812564b3b3993'
     const createdPlace = new placeModel({
         title,
         description,

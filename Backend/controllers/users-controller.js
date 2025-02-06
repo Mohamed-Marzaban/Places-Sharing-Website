@@ -69,7 +69,7 @@ const login = async (req, res, next) => {
     if (!identifiedUser || identifiedUser.password !== password)
         return next(new HttpError('Could not identify user, credentials seem to be wrong', 401))
 
-    res.json({ message: 'logged in' })
+    res.json({ user: identifiedUser })
 }
 
 module.exports = { getUsers, signup, login }
