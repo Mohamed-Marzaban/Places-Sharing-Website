@@ -120,6 +120,9 @@ const updatePlace = async (req, res, next) => {
         console.log(error)
         return next(new HttpError('Something went wrong while updating place', 500))
     }
+    if (place.creator.toString() !== req.userData.userId.toString())
+        return next(new HttpError('Not allowed to edit this place', 403))
+
     place.title = title;
     place.description = description
 
@@ -140,33 +143,47 @@ const updatePlace = async (req, res, next) => {
 }
 
 const deletePlace = async (req, res, next) => {
-    const pid = req.params.pid
+    const pid = req.params.pid;
     let place;
-    const session = await mongoose.startSession()
+    const session = await mongoose.startSession();
+
     try {
-        session.startTransaction()
-        place = await placeModel.findByIdAndDelete(pid, { session }).populate('creator')
-        place.creator.places.pull(place)
-        await place.creator.save({ session })
-        await session.commitTransaction()
+        place = await placeModel.findById(pid);
+        if (!place) {
+            return next(new HttpError('Could not find place', 404));
+        }
 
-    }
-    catch (error) {
-        await session.abortTransaction()
-        if (!place)
-            return next(new HttpError('Could not find place', 404))
-        console.log(error)
-        return next(new HttpError('Could not delete something went wrong', 500))
-    }
-    finally {
-        session.endSession()
-    }
-    fs.unlink(place.image.slice(22), (error) => {
-        console.log(error)
-    })
+        if (place.creator.toString() !== req.userData.userId.toString()) {
+            return next(new HttpError('Not allowed to delete this place', 403));
+        }
 
+        session.startTransaction();
+        place = await placeModel.findByIdAndDelete(pid, { session }).populate('creator');
+        if (!place) {
+            await session.abortTransaction();
+            return next(new HttpError('Could not delete place', 404));
+        }
 
-    res.status(200).json({ message: 'Deleted place.' })
-}
+        place.creator.places.pull(place);
+        await place.creator.save({ session });
+
+        await session.commitTransaction();
+    } catch (err) {
+        console.error(err);
+        await session.abortTransaction();
+        return next(new HttpError('Could not delete place, something went wrong', 500));
+    } finally {
+        session.endSession();
+    }
+
+    fs.unlink(place.image.slice(22), (err) => {
+        if (err) {
+            console.error('Failed to delete image file:', err);
+        }
+    });
+
+    res.status(200).json({ message: 'Deleted place.' });
+};
+
 
 module.exports = { getPlaceById, getPlacesByUserid, createPlace, updatePlace, deletePlace }

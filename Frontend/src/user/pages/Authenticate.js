@@ -34,7 +34,7 @@ const Auth = props => {
                 console.log(111)
                 console.log(response)
 
-                auth.login(response.user._id)
+                auth.login(response.userId, response.token)
             }
 
             catch (error) {
@@ -50,7 +50,7 @@ const Auth = props => {
                 formData.append('password', formState.inputs.password.value)
                 formData.append('image', formState.inputs.image.value)
                 const response = await sendRequest('http://localhost:5000/api/users/signup', 'POST', formData)
-                auth.login(response.user._id)
+                auth.login(response.userId, response.token)
 
             }
             catch (error) {
