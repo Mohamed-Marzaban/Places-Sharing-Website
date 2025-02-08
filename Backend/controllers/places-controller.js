@@ -4,6 +4,7 @@ const getCoordsForAddress = require('../util/location')
 const placeModel = require('../models/placesModel')
 const userModel = require('../models/usersModel')
 const { default: mongoose } = require('mongoose')
+const fs = require('fs')
 
 
 const getPlaceById = async (req, res, next) => {
@@ -61,7 +62,7 @@ const createPlace = async (req, res, next) => {
         description,
         location: coordinates,
         address,
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg',
+        image: 'http://localhost:5000/' + req.file.path,
         creator
     })
 
@@ -140,7 +141,7 @@ const updatePlace = async (req, res, next) => {
 
 const deletePlace = async (req, res, next) => {
     const pid = req.params.pid
-    let place, user;
+    let place;
     const session = await mongoose.startSession()
     try {
         session.startTransaction()
@@ -148,6 +149,7 @@ const deletePlace = async (req, res, next) => {
         place.creator.places.pull(place)
         await place.creator.save({ session })
         await session.commitTransaction()
+
     }
     catch (error) {
         await session.abortTransaction()
@@ -159,6 +161,9 @@ const deletePlace = async (req, res, next) => {
     finally {
         session.endSession()
     }
+    fs.unlink(place.image.slice(22), (error) => {
+        console.log(error)
+    })
 
 
     res.status(200).json({ message: 'Deleted place.' })
